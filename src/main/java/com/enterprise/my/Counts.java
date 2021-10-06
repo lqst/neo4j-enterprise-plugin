@@ -15,6 +15,8 @@ public class Counts {
     @Context
     public DbmsContext dbmsContext;
 
+    @Context
+    public Transaction tx;
 
     @Procedure(name = "multidb.counts", mode = Mode.READ)
     @Description("counts([databases])")
