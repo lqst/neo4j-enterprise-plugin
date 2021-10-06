@@ -1,3 +1,5 @@
+package com.enterprise.my;
+
 import com.neo4j.harness.EnterpriseNeo4jBuilders;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -5,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
 import org.neo4j.harness.Neo4j;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
