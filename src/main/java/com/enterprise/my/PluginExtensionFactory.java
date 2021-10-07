@@ -7,7 +7,6 @@ import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.Lifecycle;
-import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 
 @ServiceProvider
 public class PluginExtensionFactory extends ExtensionFactory<PluginExtensionFactory.Dependencies> {

@@ -1,5 +1,6 @@
 package com.enterprise.my;
 
+import com.neo4j.configuration.FabricEnterpriseSettings;
 import com.neo4j.harness.EnterpriseNeo4jBuilders;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,6 +22,7 @@ class CountsTest {
     static void initializeNeo4j() {
         embeddedDatabaseServer = EnterpriseNeo4jBuilders.newInProcessBuilder()
                 .withDisabledServer()
+                .withConfig(FabricEnterpriseSettings.database_name, "fabric")
                 .withExtensionFactories(Collections.singletonList(new PluginExtensionFactory()))
                 .withProcedure(Counts.class)
                 .build();
@@ -58,7 +60,7 @@ class CountsTest {
     }
 
     @Test
-    void counts() {
+    void multidbCounts() {
         try (Session session = driver.session(SessionConfig.forDatabase("db1"))) {
             Result result = session.run("CALL multidb.counts(['db1','db2']) yield database, nodes return database, nodes");
             assertThat(result.stream())
@@ -70,7 +72,20 @@ class CountsTest {
                     })
                     .containsExactlyInAnyOrder("db1:1", "db2:2");;
         }
+    }
 
-
+    @Test
+    void fabricCounts() {
+        try (Session session = driver.session(SessionConfig.forDatabase("fabric"))) {
+            Result result = session.run("CALL fabric.counts(['db1','db2']) yield database, nodes return database, nodes");
+            assertThat(result.stream())
+                    .hasSize(2)
+                    .extracting(r -> {
+                        String database = r.get("database").asString();
+                        Long nodes = r.get("nodes").asLong();
+                        return String.format("%s:%s", database, nodes);
+                    })
+                    .containsExactlyInAnyOrder("db1:1", "db2:2");;
+        }
     }
 }
