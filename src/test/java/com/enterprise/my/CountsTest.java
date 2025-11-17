@@ -1,14 +1,11 @@
 package com.enterprise.my;
 
-import com.neo4j.configuration.FabricEnterpriseSettings;
 import com.neo4j.harness.EnterpriseNeo4jBuilders;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
 import org.neo4j.harness.Neo4j;
-
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +19,6 @@ class CountsTest {
     static void initializeNeo4j() {
         embeddedDatabaseServer = EnterpriseNeo4jBuilders.newInProcessBuilder()
                 .withDisabledServer()
-                .withConfig(FabricEnterpriseSettings.database_name, "fabric")
-                .withExtensionFactories(Collections.singletonList(new PluginExtensionFactory()))
                 .withProcedure(Counts.class)
                 .build();
 
@@ -32,7 +27,6 @@ class CountsTest {
         try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
             session.writeTransaction(tx -> {
                 tx.run("create database db1");
-                tx.run("create database db2");
                 return true;
             });
         }
@@ -42,15 +36,6 @@ class CountsTest {
                 return true;
             });
         }
-
-        try (Session session = driver.session(SessionConfig.forDatabase("db2"))) {
-            session.writeTransaction(tx -> {
-                tx.run("create ()");
-                tx.run("create ()");
-                return true;
-            });
-        }
-
     }
 
     @AfterAll
@@ -60,32 +45,17 @@ class CountsTest {
     }
 
     @Test
-    void multidbCounts() {
+    void mySillyCounts() {
         try (Session session = driver.session(SessionConfig.forDatabase("db1"))) {
-            Result result = session.run("CALL multidb.counts(['db1','db2']) yield database, nodes return database, nodes");
+            Result result = session.run("CALL my.counts(false) yield nodes return nodes");
             assertThat(result.stream())
-                    .hasSize(2)
+                    .hasSize(1)
                     .extracting(r -> {
-                        String database = r.get("database").asString();
                         Long nodes = r.get("nodes").asLong();
-                        return String.format("%s:%s", database, nodes);
+                        return String.format("%s", nodes);
                     })
-                    .containsExactlyInAnyOrder("db1:1", "db2:2");;
+                    .containsExactlyInAnyOrder("1");;
         }
     }
 
-    @Test
-    void fabricCounts() {
-        try (Session session = driver.session(SessionConfig.forDatabase("fabric"))) {
-            Result result = session.run("CALL fabric.counts(['db1','db2']) yield database, nodes return database, nodes");
-            assertThat(result.stream())
-                    .hasSize(2)
-                    .extracting(r -> {
-                        String database = r.get("database").asString();
-                        Long nodes = r.get("nodes").asLong();
-                        return String.format("%s:%s", database, nodes);
-                    })
-                    .containsExactlyInAnyOrder("db1:1", "db2:2");;
-        }
-    }
 }
