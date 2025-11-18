@@ -25,15 +25,13 @@ class CountsTest {
         driver = GraphDatabase.driver(embeddedDatabaseServer.boltURI(), driverConfig);
 
         try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-            session.writeTransaction(tx -> {
+            session.executeWriteWithoutResult(tx -> {
                 tx.run("create database db1");
-                return true;
             });
         }
         try (Session session = driver.session(SessionConfig.forDatabase("db1"))) {
-            session.writeTransaction(tx -> {
+            session.executeWriteWithoutResult(tx -> {
                 tx.run("create ()");
-                return true;
             });
         }
     }
@@ -51,7 +49,7 @@ class CountsTest {
             assertThat(result.stream())
                     .hasSize(1)
                     .extracting(r -> {
-                        Long nodes = r.get("nodes").asLong();
+                        Long nodes = (Long) r.get("nodes").asLong();
                         return String.format("%s", nodes);
                     })
                     .containsExactlyInAnyOrder("1");;
